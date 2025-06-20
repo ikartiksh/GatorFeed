@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -9,14 +9,38 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	"github.com/kartiksharma-git/rssagg/internal/database"
+
+	pq "github.com/lib/pq"
 )
 
-func main() {
-	godotenv.Load()
+var _ = pq.Driver{}
 
-	portString := os.Getenv("PORT")
-	if portString == "" {
-		log.Fatal("PORT is not found in the env")
+type apiConfig struct {
+	DB *database.Queries
+}
+
+func main() {
+	godotenv.Load(".env")
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT environment variable is not set")
+	}
+
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("DATABASE_URL environment variable is not set")
+	}
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbQueries := database.New(db)
+
+	apiCfg := apiConfig{
+		DB: dbQueries,
 	}
 
 	router := chi.NewRouter()
@@ -31,21 +55,19 @@ func main() {
 	}))
 
 	v1Router := chi.NewRouter()
+
+	v1Router.Post("/users", apiCfg.handlerUsersCreate)
+	v1Router.Get("/users", apiCfg.handlerUsersGet)
+
 	v1Router.Get("/healthz", handlerReadiness)
-	v1Router.Get("/err", handleErr)
+	v1Router.Get("/error", handleErr)
 
 	router.Mount("/v1", v1Router)
-
 	srv := &http.Server{
+		Addr:    ":" + port,
 		Handler: router,
-		Addr:    ":" + portString,
 	}
 
-	log.Printf("Server starting on port %v", portString)
-	err := srv.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Port: ", portString)
+	log.Printf("Serving on port: %s\n", port)
+	log.Fatal(srv.ListenAndServe())
 }
