@@ -1,4 +1,4 @@
-#GatorFeed 
+# GatorFeed 
 
 This a project based upon [RSS](https://en.wikipedia.org/wiki/RSS) feed aggregator in Go! It's a web server that allows clients to:
 
