@@ -7,9 +7,3 @@ This a project based upon [RSS](https://en.wikipedia.org/wiki/RSS) feed aggregat
 * Fetch all of the latest posts from the RSS feeds they follow
 
 RSS feeds are a way for websites to publish updates to their content. You can use this project to keep up with your favorite blogs, news sites, podcasts, and more!
-
-## Learning goals
-
-* Learn how to integrate a Go server with PostgreSQL
-* Learn about the basics of database migrations
-* Learn about long-running service workers
