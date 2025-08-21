@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatorfeed
+  namespace: gatorfeed
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gatorfeed
+  template:
+    metadata:
+      labels:
+        app: gatorfeed
+    spec:
+      containers:
+      - name: gatorfeed
+        image: sharmakartik/gatorfeed:latest  # Replace this when pushed
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: gatorfeed-secret
+              key: DATABASE_URL
+        - name: PORT
+          value: "3000"  # Required by your app
+        args: ["serve"]
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
